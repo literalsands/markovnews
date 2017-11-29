@@ -30,3 +30,11 @@ def get_news_urls():
 def markov_the_news(text):
     model = markovify.NewlineText(text)
     return model.make_sentence()
+
+# while True:
+#     api.update_status(markov_the_news(text))
+
+# get_news_urls()
+
+# for x in response.json()['articles']:
+#     print(x['urlToImage'])
