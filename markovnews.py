@@ -53,14 +53,16 @@ def markov_the_news(text):
 
 
 bbc_response = get_news_object('bbc-news')
-nbc_response = get_news_object('engadget')
+nbc_response = get_news_object('fox-news')
 msnbc_response = get_news_object('nbc-news')
+ap_response = get_news_object('associated-press')
 # url_list = get_news_urls(response)
 bbc_headlines = get_news_headlines(bbc_response)
 nbc_headlines = get_news_headlines(nbc_response)
 msnbc_headlines = get_news_headlines(msnbc_response)
+ap_headlines = get_news_headlines(ap_response)
 
 # article = get_news(url_list[0])
 
 for x in range(10):
-    print(markov_the_news(' '.join(bbc_headlines + nbc_headlines + msnbc_headlines)))
+    print(markov_the_news(' '.join(bbc_headlines + nbc_headlines + msnbc_headlines + ap_headlines)))
