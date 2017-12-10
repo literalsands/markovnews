@@ -1,2 +1,4 @@
 keys.ini
 config.ini
+__pycache__
+.vscode

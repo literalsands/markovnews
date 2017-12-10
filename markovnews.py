@@ -1,5 +1,4 @@
 import requests, sys, tweepy, re, time, markovify
-from get_news import get_news
 
 config = open('config.ini','r')
 tokens = config.readlines()
@@ -9,60 +8,45 @@ CONSUMER_KEY = tokens[0].rstrip()
 CONSUMER_SECRET = tokens[1].rstrip()
 ACCESS_KEY = tokens[2].rstrip()
 ACCESS_SECRET = tokens[3].rstrip()
-NEWS_API_KEY = tokens[4].strip()
+NEWSAPI_CLIENT_KEY = tokens[4].strip()
 
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-api = tweepy.API(auth)
+#auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+#auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+#api = tweepy.API(auth)
 
-# api.update_status("test")
+def query_api(endpoint, query_params, api_params):
+    # We're trusting the params are valid.
+    # Convert the query_params and api_params dict into a query.
+    query = "?" + "&".join(map("=".join, list(query_params.items()) + list(api_params.items())))
+    return requests.get(endpoint + query)
 
-def get_news_object(news_source):
-        url = ('https://newsapi.org/v2/top-headlines?'
-       'sources=' + news_source + '&'
-       'apiKey=' + NEWS_API_KEY)
-        response = requests.get(url)
-        return response
+# https://newsapi.org/docs
+def query_newsapi_headlines(query_params):
+    # Make the request and return body in JSON format.
+    return query_api("https://newsapi.org/v2/top-headlines", query_params, {'apiKey': NEWSAPI_CLIENT_KEY}).json()
 
-       
+# https://newsapi.org/docs
+def query_newsapi_everything(query_params):
+    # Make the request and return body in JSON format.
+    return query_api("https://newsapi.org/v2/everything", query_params, {'apiKey': NEWSAPI_CLIENT_KEY}).json()
 
-def get_news_urls(response):
-    url_list = []
-    for article in response.json()['articles']:
-        url_list.append(article['url'])
-    return url_list
+def get_news_headlines(news_sources):
+    # sources: A comma-seperated string of identifiers (maximum 20) ...
+    news_sources = news_sources if isinstance(news_sources, list) else list(news_sources)
+    return query_newsapi_headlines({'sources': ",".join(news_sources)});
 
-def get_news_headlines(response):
-    headlines = []
-    for article in response.json()['articles']:
-        headlines.append(article['title'] + " " + article["description"])
-    return headlines
+def url_from_article(article):
+    return article['url']
 
-
-def markov_the_news(text):
-    model = markovify.Text(text)
-    return model.make_sentence()
-
-# while True:
-#     api.update_status(markov_the_news(text))
-
-# get_news_urls()
-
-# for x in response.json()['articles']:
-#     print(x['urlToImage'])
+def headline_from_article(article):
+    return ' '.join((article['title'], article['description']));
 
 
-bbc_response = get_news_object('bbc-news')
-nbc_response = get_news_object('fox-news')
-msnbc_response = get_news_object('nbc-news')
-ap_response = get_news_object('associated-press')
-# url_list = get_news_urls(response)
-bbc_headlines = get_news_headlines(bbc_response)
-nbc_headlines = get_news_headlines(nbc_response)
-msnbc_headlines = get_news_headlines(msnbc_response)
-ap_headlines = get_news_headlines(ap_response)
-
-# article = get_news(url_list[0])
+#article = map(get_news(url_list[0])
+sources = ['bbc-news','fox-news','nbc-news','associated-press']
+articles = get_news_headlines(sources)['articles']
+headlines = map(headline_from_article, articles)
+model = markovify.Text(' '.join(headlines))
 
 for x in range(10):
-    print(markov_the_news(' '.join(bbc_headlines + nbc_headlines + msnbc_headlines + ap_headlines)))
+    print(model.make_sentence())
